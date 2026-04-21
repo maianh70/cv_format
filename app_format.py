@@ -117,11 +117,7 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, language
 
         3. EMPLOYMENT
         - Copy EXACT from original text, do NOT infer or rewrite
-
-        4. EXPERIENCES (VERY IMPORTANT)
-        - Extract from projects / professional activities
-        - project_feature = short description (1–2 sentences[70 - 100 words], keep original wording if possible)
-        - activities_undertake MUST be a JSON array of strings. Each action must be a separate string element. Do NOT use bullet points, line breaks, or a single string
+    
 
 
         JSON FORMAT:
@@ -152,14 +148,7 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, language
                 "position": ""
             }}
             ],
-            "experiences": [
-            {{
-                "name_e": "",
-                "duration": "",
-                "position_held": "",
-                "project_feature": "",
-                "activities_undertake": ""
-            }}
+            "experiences": ["" for _ in range(experience_count)]
             ]
         }}
 
