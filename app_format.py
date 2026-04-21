@@ -95,8 +95,6 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, language
         Extract structured information from the CV text below and the additional context.
 
         Return ONLY valid JSON that matches these keys below. 
-        - Escape all special characters properly
-        - Do NOT include raw line breaks inside strings
         The JSON structure MUST match the provided schema EXACTLY
         NO EXPLANATION.
         Make sure to fetch:
@@ -188,7 +186,7 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, language
         temperature=0
     )
     result = response.choices[0].message.content
-    result = result.replace("\n", "\\n").replace("\r", "")
+    
     try:
         data = json.loads(result.strip())
         return data
