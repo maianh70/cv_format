@@ -173,7 +173,7 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, language
     client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
     api_key=st.secrets["GROQ_API_KEY"]
-
+    )
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
