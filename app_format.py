@@ -120,7 +120,7 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, language
         4. EXPERIENCES (VERY IMPORTANT)
         - Extract from projects / professional activities
         - project_feature = short description (1–2 sentences[70 - 100 words], keep original wording if possible)
-        - activities_undertake = list of actions if available, otherwise []
+        - activities_undertake = list of 5 - 7 actions, each action equal to one element in the "activities_undertake" array, otherwise []
 
 
         JSON FORMAT:
