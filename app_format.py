@@ -80,7 +80,6 @@ def main():
                 try:
                     cv_text = extract_text_from_cv(input_cv) #EXTRACT DETAILED INFOR
                     cv_data_p2 = detail_infor_extraction(name, title, nationality, cv_text, context, languages_count, education_count, employment_count, experience_count)
-                    st.write(cv_data_p2)
                     file_path_p2 =  fill_data(cv_data_p2, docs)
                     expert_name_auto = f"{expert_name}_auto_fill.docx"
                     download_button(file_path_p2, expert_name_auto)
