@@ -14,12 +14,18 @@ def main():
     # ===== CONFIG =====
     st.set_page_config(page_title="CV Automated ForMAtter", layout="centered")
     st.title("📄 Mekong CV ForMAtter 2026")
-
+    min_date = date(1928, 1, 1)
+    max_date = date(2028, 1, 1)
     # === Single-input fields ===
     name = st.text_input("Enter expert's name:")
     title = st.text_input("Enter expert title:")
     nationality = st.text_input("Enter expert's nationality:")
-    dob = st.date_input("Enter expert's day of birth", value=date.today())
+    dob = st.date_input(
+        "Enter expert's day of birth", 
+        value=date.today(), 
+        min_value=min_date, 
+        max_value=max_date
+    )
 
 
     # === Multiple-input fields ===
