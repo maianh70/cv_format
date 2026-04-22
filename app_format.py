@@ -18,6 +18,8 @@ def main():
     name = st.text_input("Enter expert's name:")
     title = st.text_input("Enter expert title:")
     nationality = st.text_input("Enter expert's nationality:")
+    dob = st.date_input("Enter expert's day of birth", value=date.today())
+
 
     # === Multiple-input fields ===
     languages_count = st.number_input("Enter the number of languages (e.g: 1, 4,..):", min_value=0, step=1)
@@ -38,6 +40,7 @@ def main():
     "name": name,
     "title": title,
     "nationality": nationality,
+    "dob": dob,
     "languages": ["" for _ in range(languages_count)],
     "education": ["" for _ in range(education_count)],
     "employment": ["" for _ in range(employment_count)],
@@ -89,7 +92,7 @@ def main():
             
 
 
-def detail_infor_extraction(cv_text, context, name, title, nationality, languages_count=0, education_count=0, employment_count=0, experience_count=0):
+def detail_infor_extraction(cv_text, context, name, title, nationality, dob, languages_count=0, education_count=0, employment_count=0, experience_count=0):
     prompt = f"""
         Extract structured information from the CV text below and the additional context.
 
@@ -124,6 +127,7 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, language
             "name": "{name}",
             "title": "{title}",
             "nationality": "{nationality}",
+            "dob": "{dob}"
             "languages": [
                 {{
                     "name_l": "",
