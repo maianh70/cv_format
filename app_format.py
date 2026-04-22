@@ -7,6 +7,7 @@ from docxtpl import DocxTemplate
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+from datetime import date
 
 def main():
     
