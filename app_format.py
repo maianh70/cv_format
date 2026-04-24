@@ -170,6 +170,7 @@ def detail_infor_extraction(name, title, nationality, dob,
         - ONLY apply adjustments explicitly requested in the context below. If the context says
           to highlight something, add or reorder content for that point only. Do not rephrase
           anything that is not mentioned in the context.
+        - Try to separate each experience by paragraphing it.  
         - The user's context is: {context}
  
         =====================
