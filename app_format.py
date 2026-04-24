@@ -36,12 +36,9 @@ def main():
 
     # ==== Template Input ====
     template_file = st.file_uploader("Upload your Template (DOCX)", type=["docx"])
-    if template_file is None:
-        st.warning("Please upload a DOCX template to proceed.")
-        return
 
-    template_bytes = template_file.read()
     try:
+        template_bytes = template_file.read()
         DocxTemplate(io.BytesIO(template_bytes))  # dry-run: catches corrupt files & bad Jinja2 tags
     except Exception as e:
         st.error(
@@ -91,7 +88,7 @@ def main():
     if st.session_state.get("stage") == "detail_input":
         input_cv = st.file_uploader("Upload your CV (PDF)", type=["pdf"])
         context = st.text_area("Additional Information (e.g: specific formatting requirements, key achievements to highlight, etc.):",)
-        if input_cv and context:
+        if input_cv:
             if st.button("🚀  Fill professional information"):
                 with st.spinner("Extracting information from CV..."):
                     cv_text = extract_text_from_cv(input_cv) #EXTRACT DETAILED INFOR
@@ -115,76 +112,101 @@ def main():
 
 
 def detail_infor_extraction(name, title, nationality, dob,
-                            cv_text, context,
+                            cv_text, context="",
                             languages_count=0, education_count=0, 
                             employment_count=0):
 
-    prompt = f"""
+       prompt = f"""
         Extract structured information from the CV text below and the additional context.
-
-        Return ONLY valid JSON that matches these keys below. 
-        The JSON structure MUST match the provided schema EXACTLY
-        NO EXPLANATION.
-        Make sure to fetch:
-        {languages_count} iteams for the key "languages", 
-        {education_count} iteams for the key "education", 
-        {employment_count} iteams for the key "employment"
-
-
-        SPECIAL EXTRACTION RULES
-
+ 
+        Return ONLY valid JSON. NO explanation, NO markdown, NO code fences.
+        The JSON structure MUST match the schema below EXACTLY.
+ 
+        =====================
+        EXTRACTION RULES
+        =====================
+ 
         1. LANGUAGES
-        - If languages are explicitly listed → extract them
-        - Infer mother tongue based on their nationalities: {nationality}
-        - Categorize proficiency levels into "Basic", "Intermediate", "Advanced", "Native" based on descriptions in the CV for each skills (speaking, reading, writing).
-        
+        - Extract explicitly listed languages only.
+        - Infer mother tongue from nationality: {nationality}
+        - Map proficiency descriptions to exactly one of: "Basic", "Intermediate", "Advanced", "Native"
+          for each of speaking, reading, writing.
+        - Produce exactly {languages_count} entries.
+ 
         2. EDUCATION
-        - Extract ONLY formal degrees
-        - Copy EXACT from original text, do NOT infer or rewrite for school_name, degree, date
-
-        3. EMPLOYMENT
-        - Copy EXACT from original text, do NOT infer or rewrite
-
-        4. EXPERIENCE
-        - Copy exactly what is in the cv_text, and make appropriate adjustments based on the context given
-    
-        JSON FORMAT:
+        - Extract ONLY formal university degrees (Bachelor, Master, PhD/Doctorate).
+        - Copy school_name, degree, and date EXACTLY from the CV text — do not paraphrase.
+        - Produce exactly {education_count} entries.
+ 
+        3. EMPLOYMENT RECORD
+        - Include ONLY positions whose total duration is MORE THAN 12 months (1 year).
+        - Produce exactly {employment_count} entries, picking the longest/most relevant ones.
+        - from_date and to_date: write the exact start and end of the engagement (e.g. "June 2015", "December 2017").
+          If the position is ongoing, write "Present" for to_date.
+        - employer: organisation name only, copied exactly from the CV.
+        - position: job title only, copied exactly from the CV.
+ 
+        4. PROFESSIONAL CERTIFICATES & ASSOCIATIONS
+        - List ALL certifications and professional memberships found in the CV.
+        - Return certification/membership names ONLY — no year, no issuing body.
+        - Format as a bullet list using "• " prefix, one per line, e.g.:
+            "• Google Data Analytics Professional Certificate\n• PRINCE2 Practitioner"
+        - If the CV states "None" for memberships, skip that; still list all certifications.
+ 
+        5. COUNTRIES OF WORK EXPERIENCE
+        - List every unique country where the expert has worked, studied, or been based.
+        - Return as country names separated by commas ONLY, e.g. "Indonesia, Taiwan"
+        - No extra words, no labels, just the country names.
+ 
+        6. WORK UNDERTAKEN (EXPERIENCE)
+        - Produce exactly {experience_count} entries.
+        - Copy the assignment descriptions AS-IS from the CV text — exact wording, exact details.
+        - ONLY apply adjustments explicitly requested in the context below. If the context says
+          to highlight something, add or reorder content for that point only. Do not rephrase
+          anything that is not mentioned in the context.
+        - The user's context is: {context}
+ 
+        =====================
+        JSON SCHEMA
+        =====================
         {{
             "name": "{name}",
             "title": "{title}",
             "nationality": "{nationality}",
-            "dob": "{dob}"
+            "dob": "{dob}",
             "languages": [
                 {{
-                    "name_l": "",
-                    "speaking": "",
-                    "reading": "",
-                    "writing": ""
+                    "name_l": "<language name>",
+                    "speaking": "<Basic|Intermediate|Advanced|Native>",
+                    "reading": "<Basic|Intermediate|Advanced|Native>",
+                    "writing": "<Basic|Intermediate|Advanced|Native>"
                 }}
             ],
             "education": [
                 {{
-                    "school_name": "",
-                    "degree": "",
-                    "date": ""
+                    "school_name": "<exact institution name and location>",
+                    "degree": "<exact degree name>",
+                    "date": "<exact date range from CV>"
                 }}
             ],
             "employment": [
-            {{
-                "from_date": "",
-                "to_date": "",
-                "employer": "",
-                "position": ""
-            }}
+                {{
+                    "from_date": "<start month and year>",
+                    "to_date": "<end month and year or Present>",
+                    "employer": "<exact organisation name>",
+                    "position": "<exact job title>"
+                }}
             ],
-            "experiences": ""
-            ],
-            "cert_asso"
+            "cert_asso": "<all certifications and memberships, one per line>",
+            "country_work": "<comma-separated list of countries>",
+            "experiences": {experiences_placeholder}
         }}
-
+ 
+        =====================
         CV TEXT:
         {cv_text}
-        CONTEXT:
+ 
+        CONTEXT (use this to tailor the experience descriptions):
         {context}
         """
 
