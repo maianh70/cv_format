@@ -230,6 +230,7 @@ def fill_data(data, docs=None):
             docs.save(tmp.name)
             return tmp.name
     except Exception as e:
+        msg = str(e)
         if "TemplateSyntaxError" in msg or "jinja2" in msg.lower():
             st.error(
                 "The template has a Jinja2 tag error. "
