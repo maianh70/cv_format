@@ -110,16 +110,18 @@ def main():
 
             
 
-
 def detail_infor_extraction(name, title, nationality, dob,
-                            cv_text, context="",
-                            languages_count=0, education_count=0, 
-                            employment_count=0):
-
-       prompt = f"""
-       Extract structured information from the CV text below and the additional context.
-       Return ONLY valid JSON. NO explanation, NO markdown, NO code fences.
-       The JSON structure MUST match the schema below EXACTLY.
+                             cv_text, context,
+                             languages_count=0, education_count=0,
+                             employment_count=0, experience_count=0):
+ 
+    experiences_placeholder = json.dumps(["" for _ in range(experience_count)])
+ 
+    prompt = f"""
+        Extract structured information from the CV text below and the additional context.
+ 
+        Return ONLY valid JSON. NO explanation, NO markdown, NO code fences.
+        The JSON structure MUST match the schema below EXACTLY.
  
         =====================
         EXTRACTION RULES
@@ -202,29 +204,25 @@ def detail_infor_extraction(name, title, nationality, dob,
         }}
  
         =====================
-    CV TEXT:
-    {cv_text}
+        CV TEXT:
+        {cv_text}
  
-    CONTEXT (use this to tailor the experience descriptions):
-    {context}
-    """
-
+        CONTEXT (use this to tailor the experience descriptions):
+        {context}
+        """
+ 
     load_dotenv()
-    # ===== API SETUP =====
     client = OpenAI(
         base_url="https://api.groq.com/openai/v1",
         api_key=st.secrets["GROQ_API_KEY"]
     )
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "You are a data extraction assistant. You respond ONLY with valid JSON. No explanation, no markdown, no code fences."},
-            {"role": "user", "content": prompt}
-        ],
+        model="llama-3.1-8b-instant",
+        messages=[{"role": "user", "content": prompt}],
         temperature=0
     )
     result = response.choices[0].message.content
-    
+ 
     try:
         data = json.loads(result.strip())
         return data
