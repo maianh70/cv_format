@@ -117,10 +117,9 @@ def detail_infor_extraction(name, title, nationality, dob,
                             employment_count=0):
 
        prompt = f"""
-        Extract structured information from the CV text below and the additional context.
- 
-        Return ONLY valid JSON. NO explanation, NO markdown, NO code fences.
-        The JSON structure MUST match the schema below EXACTLY.
+       Extract structured information from the CV text below and the additional context.
+       Return ONLY valid JSON. NO explanation, NO markdown, NO code fences.
+       The JSON structure MUST match the schema below EXACTLY.
  
         =====================
         EXTRACTION RULES
@@ -203,12 +202,12 @@ def detail_infor_extraction(name, title, nationality, dob,
         }}
  
         =====================
-        CV TEXT:
-        {cv_text}
+    CV TEXT:
+    {cv_text}
  
-        CONTEXT (use this to tailor the experience descriptions):
-        {context}
-        """
+    CONTEXT (use this to tailor the experience descriptions):
+    {context}
+    """
 
     load_dotenv()
     # ===== API SETUP =====
