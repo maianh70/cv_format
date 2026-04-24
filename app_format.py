@@ -8,6 +8,7 @@ from openai import OpenAI
 import os
 from dotenv import load_dotenv
 from datetime import date
+import io
 
 def main():
     
@@ -35,23 +36,32 @@ def main():
     experience_count = st.number_input("Enter the number of experience entries (e.g: 1, 4,..):", min_value=0, step=1)
 
     # ==== Template Input ====
-    template = st.file_uploader("Upload your Template (DOCX)", type=["docx"])
-    if template is not None:
-        docs = DocxTemplate(template)
-    else:
+    template_file = st.file_uploader("Upload your Template (DOCX)", type=["docx"])
+    if template_file is None:
         st.warning("Please upload a DOCX template to proceed.")
         return
 
+    template_bytes = template_file.read()
+    try:
+        DocxTemplate(io.BytesIO(template_bytes))  # dry-run: catches corrupt files & bad Jinja2 tags
+    except Exception as e:
+        st.error(
+            "⚠️ Could not read the template. "
+            "Make sure all `{{ }}` and `{% %}` tags are typed directly in Word "
+            "(not copy-pasted) and are not split across formatting runs. "
+            f"Detail: {e}"
+        )
+        return
     # ===== JSON for automation formatting =====
     cv_data_p1 = {
-    "name": name,
-    "title": title,
-    "nationality": nationality,
-    "dob": dob,
-    "languages": ["" for _ in range(languages_count)],
-    "education": ["" for _ in range(education_count)],
-    "employment": ["" for _ in range(employment_count)],
-    "experiences": ["" for _ in range(experience_count)]
+        "name": name,
+        "title": title,
+        "nationality": nationality,
+        "dob": str(dob),
+        "languages": ["" for _ in range(languages_count)],
+        "education": ["" for _ in range(education_count)],
+        "employment": ["" for _ in range(employment_count)],
+        "experiences": ["" for _ in range(experience_count)]
     }
 
     expert_name = cv_data_p1["name"].replace(" ", "_").replace("/", "")
@@ -59,20 +69,18 @@ def main():
     # === Generate Word Document ===
 
     if st.button("🚀  Fill personal information"):
-        if template is None or not name or not title or not nationality:
+        if not name or not title or not nationality:
             st.error("Please fill in all required fields.")
         else:
         # === Generate Word Document ===
-
+            docs = DocxTeamplate(io.BytesIO(template_bytes))
             file_path_p1 = fill_data(cv_data_p1, docs)
-
-            st.session_state.generate_file = file_path_p1
-            st.session_state.stage = "generated"
+            if file_path_p1:
+                st.session_state.generate_file = file_path_p1
+                st.session_state.stage = "generated"
 
     if st.session_state.get("stage") == "generated":
-
-        st.success("name, title, nationality have added. All rows are needed for professional information is added as well")
-
+        st.success("Name, Title, Nationality have added. All rows are needed for professional information is added as well")
         col1, col2 = st.columns(2)
         # 5. Download button
         with col1:
@@ -87,19 +95,33 @@ def main():
         context = st.text_area("Additional Information (e.g: specific formatting requirements, key achievements to highlight, etc.):",)
         if input_cv and context:
             if st.button("🚀  Fill professional information"):
-                try:
+                with st.spinner("Extracting information from CV..."):
                     cv_text = extract_text_from_cv(input_cv) #EXTRACT DETAILED INFOR
-                    cv_data_p2 = detail_infor_extraction(name, title, nationality, cv_text, context, languages_count, education_count, employment_count, experience_count)
-                    file_path_p2 =  fill_data(cv_data_p2, docs)
-                    expert_name_auto = f"{expert_name}_auto_fill.docx"
-                    download_button(file_path_p2, expert_name_auto)
-                except Exception as e:
-                    st.error(f"Error processing CV: {e}")
+                with st.spinner("Asking AI to structure the data..."):
+                    cv_data_p2 = detail_infor_extraction(
+                        name, title, nationality, str(dob), 
+                        cv_text, context, 
+                        int(languages_count), int(education_count), 
+                        int(employment_count), int(experience_count)
+                    )
+                if cv_data_p2 is not None:
+                    with st.spinner("Filling template..."):
+                        docs2 = DocxTemplate(io.BytesIO(template_bytes))
+                        file_path_p2 =  fill_data(cv_data_p2, docs2)
+                    if file_path_p2:
+                        expert_name_auto = f"{expert_name}_auto_fill.docx"
+                        download_button(file_path_p2, expert_name_auto)
+                
 
             
 
 
-def detail_infor_extraction(cv_text, context, name, title, nationality, dob, languages_count=0, education_count=0, employment_count=0, experience_count=0):
+def detail_infor_extraction(name, title, nationality, dob,
+                            cv_text, context,
+                            languages_count=0, education_count=0, 
+                            employment_count=0, experience_count=0):
+
+    experiences_placeholder = json.dumps(["" for _ in range(experience_count)])
     prompt = f"""
         Extract structured information from the CV text below and the additional context.
 
@@ -127,8 +149,6 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, dob, lan
         3. EMPLOYMENT
         - Copy EXACT from original text, do NOT infer or rewrite
     
-
-
         JSON FORMAT:
         {{
             "name": "{name}",
@@ -171,8 +191,8 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, dob, lan
     load_dotenv()
     # ===== API SETUP =====
     client = OpenAI(
-    base_url="https://api.groq.com/openai/v1",
-    api_key=st.secrets["GROQ_API_KEY"]
+        base_url="https://api.groq.com/openai/v1",
+        api_key=st.secrets["GROQ_API_KEY"]
     )
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
@@ -190,11 +210,8 @@ def detail_infor_extraction(cv_text, context, name, title, nationality, dob, lan
         data = json.loads(result.strip())
         return data
     except json.JSONDecodeError:
-        # Fallback: extract JSON using regex
         json_match = re.search(r'\{.*\}', result, re.DOTALL)
         if json_match:
-            json_str = json_match.group()
-            #st.write("Extracted JSON:", json_str[:1000] + "..." if len(json_str) > 1000 else json_str)
             data = json.loads(json_str)
             return data
         else:
@@ -207,10 +224,22 @@ def extract_text_from_cv(input_cv):
         return extracted_text
     
 def fill_data(data, docs=None):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
-        docs.render(data)
-        docs.save(tmp.name)
-        return tmp.name
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+            docs.render(data)
+            docs.save(tmp.name)
+            return tmp.name
+    except Exception as e:
+        if "TemplateSyntaxError" in msg or "jinja2" in msg.lower():
+            st.error(
+                "The template has a Jinja2 tag error. "
+                "Open the .docx in Word, delete and retype any {{ }} or {% %} tags directly "
+                "(do not copy-paste them), then re-upload."
+            )
+        else:
+            st.error(f"Failed to fill the template: {msg}")
+        return None
+    
 
 def download_button(file_path, name):
     with open(file_path, "rb") as f:
@@ -219,9 +248,7 @@ def download_button(file_path, name):
             f,
             file_name=f"{name}_formatted_cv.docx"
         )
-def generate_word(data, docs, file_name, name):
-    fill_data(data, docs=None)
-    download_button(file_path, name)
+
 
 if __name__ == "__main__":
     main()
