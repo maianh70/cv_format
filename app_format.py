@@ -23,8 +23,7 @@ def main():
     nationality = st.text_input("Enter expert's nationality:")
     dob = st.date_input(
         "Enter expert's day of birth", 
-        value=None,
-        value=date.today(), 
+        value=None, 
         min_value=min_date, 
         max_value=max_date,
         placeholder="Leave blank if unknown"
