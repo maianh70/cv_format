@@ -34,20 +34,25 @@ def main():
     education_count = st.number_input("Enter the number of education entries (e.g: 1, 4,..):", min_value=0, step=1)
     employment_count = st.number_input("Enter the number of employment entries (e.g: 1, 4,..):", min_value=0, step=1)
 
-    # ==== Template Input ====
+   # ==== Template Input ====
+    # FIX: store template bytes so DocxTemplate can be re-created fresh for each render
     template_file = st.file_uploader("Upload your Template (DOCX)", type=["docx"])
+    if template_file is None:
+        st.warning("Please upload a DOCX template to proceed.")
+        return
+ 
+    # Read bytes once; validate the template is readable before going further
     template_bytes = template_file.read()
-    if template_bytes is not None:
-        try:
-            DocxTemplate(io.BytesIO(template_bytes))  # dry-run: catches corrupt files & bad Jinja2 tags
-        except Exception as e:
-            st.error(
-                "⚠️ Could not read the template. "
-                "Make sure all `{{ }}` and `{% %}` tags are typed directly in Word "
-                "(not copy-pasted) and are not split across formatting runs. "
-                f"Detail: {e}"
-            )
-            return
+    try:
+        DocxTemplate(io.BytesIO(template_bytes))  # dry-run: catches corrupt files & bad Jinja2 tags
+    except Exception as e:
+        st.error(
+            "⚠️ Could not read the template. "
+            "Make sure all `{{ }}` and `{% %}` tags are typed directly in Word "
+            "(not copy-pasted) and are not split across formatting runs. "
+            f"Detail: {e}"
+        )
+        return
     # ===== JSON for automation formatting =====
     cv_data_p1 = {
         "name": name,
