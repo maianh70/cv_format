@@ -92,7 +92,9 @@ def main():
 
     if st.session_state.get("stage") == "detail_input":
         input_cv = st.file_uploader("Upload your CV (PDF)", type=["pdf"])
-        context = st.text_area("Additional Information (e.g: specific formatting requirements, key achievements to highlight, etc.):",)
+        context = st.text_area("Additional Information (e.g: specific formatting requirements, key achievements to highlight, etc.):",
+                              placeholder="It's optional"
+                              )
         if input_cv:
             if st.button("🚀  Fill professional information"):
                 with st.spinner("Extracting information from CV..."):
@@ -118,9 +120,8 @@ def main():
 def detail_infor_extraction(name, title, nationality, dob,
                              cv_text, context,
                              languages_count=0, education_count=0,
-                             employment_count=0, experience_count=0):
- 
-    experiences_placeholder = json.dumps(["" for _ in range(experience_count)])
+                             employment_count=0):
+
  
     prompt = f"""
         Extract structured information from the CV text below and the additional context.
@@ -165,7 +166,6 @@ def detail_infor_extraction(name, title, nationality, dob,
         - No extra words, no labels, just the country names.
  
         6. WORK UNDERTAKEN (EXPERIENCE)
-        - Produce exactly {experience_count} entries.
         - Copy the assignment descriptions AS-IS from the CV text — exact wording, exact details.
         - ONLY apply adjustments explicitly requested in the context below. If the context says
           to highlight something, add or reorder content for that point only. Do not rephrase
@@ -205,7 +205,7 @@ def detail_infor_extraction(name, title, nationality, dob,
             ],
             "cert_asso": "<all certifications and memberships, one per line>",
             "country_work": "<comma-separated list of countries>",
-            "experiences": {experiences_placeholder}
+            "experiences": "",
         }}
  
         =====================
