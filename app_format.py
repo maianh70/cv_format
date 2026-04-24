@@ -128,8 +128,7 @@ def detail_infor_extraction(name, title, nationality, dob,
         Make sure to fetch:
         {languages_count} iteams for the key "languages", 
         {education_count} iteams for the key "education", 
-        {employment_count} iteams for the key "employment", 
-        {experience_count} iteams for the key "experiences".
+        {employment_count} iteams for the key "employment"
 
 
         SPECIAL EXTRACTION RULES
@@ -179,7 +178,8 @@ def detail_infor_extraction(name, title, nationality, dob,
             }}
             ],
             "experiences": ""
-            ]
+            ],
+            "cert_asso"
         }}
 
         CV TEXT:
