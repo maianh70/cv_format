@@ -73,7 +73,7 @@ def main():
             st.error("Please fill in all required fields.")
         else:
         # === Generate Word Document ===
-            docs = DocxTeamplate(io.BytesIO(template_bytes))
+            docs = DocxTemplate(io.BytesIO(template_bytes))
             file_path_p1 = fill_data(cv_data_p1, docs)
             if file_path_p1:
                 st.session_state.generate_file = file_path_p1
