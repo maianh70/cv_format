@@ -33,7 +33,6 @@ def main():
     languages_count = st.number_input("Enter the number of languages (e.g: 1, 4,..):", min_value=0, step=1)
     education_count = st.number_input("Enter the number of education entries (e.g: 1, 4,..):", min_value=0, step=1)
     employment_count = st.number_input("Enter the number of employment entries (e.g: 1, 4,..):", min_value=0, step=1)
-    experience_count = st.number_input("Enter the number of experience entries (e.g: 1, 4,..):", min_value=0, step=1)
 
     # ==== Template Input ====
     template_file = st.file_uploader("Upload your Template (DOCX)", type=["docx"])
@@ -60,8 +59,7 @@ def main():
         "dob": str(dob),
         "languages": ["" for _ in range(languages_count)],
         "education": ["" for _ in range(education_count)],
-        "employment": ["" for _ in range(employment_count)],
-        "experiences": ["" for _ in range(experience_count)]
+        "employment": ["" for _ in range(employment_count)]
     }
 
     expert_name = cv_data_p1["name"].replace(" ", "_").replace("/", "")
@@ -102,7 +100,7 @@ def main():
                         name, title, nationality, str(dob), 
                         cv_text, context, 
                         int(languages_count), int(education_count), 
-                        int(employment_count), int(experience_count)
+                        int(employment_count)
                     )
                 if cv_data_p2 is not None:
                     with st.spinner("Filling template..."):
@@ -119,9 +117,8 @@ def main():
 def detail_infor_extraction(name, title, nationality, dob,
                             cv_text, context,
                             languages_count=0, education_count=0, 
-                            employment_count=0, experience_count=0):
+                            employment_count=0):
 
-    experiences_placeholder = json.dumps(["" for _ in range(experience_count)])
     prompt = f"""
         Extract structured information from the CV text below and the additional context.
 
@@ -148,6 +145,9 @@ def detail_infor_extraction(name, title, nationality, dob,
 
         3. EMPLOYMENT
         - Copy EXACT from original text, do NOT infer or rewrite
+
+        4. EXPERIENCE
+        - Copy exactly what is in the cv_text, and make appropriate adjustments based on the context given
     
         JSON FORMAT:
         {{
@@ -178,7 +178,7 @@ def detail_infor_extraction(name, title, nationality, dob,
                 "position": ""
             }}
             ],
-            "experiences": ["" for _ in range(experience_count)]
+            "experiences": ""
             ]
         }}
 
@@ -195,12 +195,10 @@ def detail_infor_extraction(name, title, nationality, dob,
         api_key=st.secrets["GROQ_API_KEY"]
     )
     response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile",
         messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
+            {"role": "system", "content": "You are a data extraction assistant. You respond ONLY with valid JSON. No explanation, no markdown, no code fences."},
+            {"role": "user", "content": prompt}
         ],
         temperature=0
     )
@@ -212,11 +210,16 @@ def detail_infor_extraction(name, title, nationality, dob,
     except json.JSONDecodeError:
         json_match = re.search(r'\{.*\}', result, re.DOTALL)
         if json_match:
-            data = json.loads(json_str)
-            return data
-        else:
-            raise ValueError("Could not extract valid JSON from the response") 
-
+            try:
+                data = json.loads(json_match.group())
+                return data
+            except json.JSONDecodeError:
+                pass
+        st.warning(
+            "The AI returned a response that could not be parsed. "
+            "Try again — if it keeps failing, simplify the context text or reduce the number of entries."
+        )
+        return None
 
 def extract_text_from_cv(input_cv):
      with pdfplumber.open(input_cv) as pdf:
