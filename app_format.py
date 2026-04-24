@@ -23,10 +23,14 @@ def main():
     nationality = st.text_input("Enter expert's nationality:")
     dob = st.date_input(
         "Enter expert's day of birth", 
+        value=None,
         value=date.today(), 
         min_value=min_date, 
-        max_value=max_date
+        max_value=max_date,
+        placeholder="Leave blank if unknown"
     )
+    dob = str(dob_input) if dob_input is not None else ""
+
 
 
     # === Multiple-input fields ===
@@ -58,7 +62,7 @@ def main():
         "name": name,
         "title": title,
         "nationality": nationality,
-        "dob": str(dob),
+        "dob": dob,
         "languages": ["" for _ in range(languages_count)],
         "education": ["" for _ in range(education_count)],
         "employment": ["" for _ in range(employment_count)]
