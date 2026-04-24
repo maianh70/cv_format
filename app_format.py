@@ -121,7 +121,7 @@ def detail_infor_extraction(name, title, nationality, dob,
 
  
     prompt = f"""
-        Extract structured information from the CV text below and the additional context.
+        Extract structured information from the CV text below.
  
         Return ONLY valid JSON. NO explanation, NO markdown, NO code fences.
         The JSON structure MUST match the schema below EXACTLY.
@@ -163,11 +163,7 @@ def detail_infor_extraction(name, title, nationality, dob,
         - No extra words, no labels, just the country names.
  
         6. WORK UNDERTAKEN (EXPERIENCE)
-        - Copy the assignment descriptions AS-IS from the CV text — exact wording, exact details.
-        - ONLY apply adjustments explicitly requested in the context below. If the context says
-          to highlight something, add or reorder content for that point only. Do not rephrase
-          anything that is not mentioned in the context. 
-        - The user's context is: {context}
+        - Copy the assignment descriptions AS-IS from the CV text — exact wording, exact details. 
  
         =====================
         JSON SCHEMA
@@ -208,9 +204,6 @@ def detail_infor_extraction(name, title, nationality, dob,
         =====================
         CV TEXT:
         {cv_text}
- 
-        CONTEXT (use this to tailor the experience descriptions):
-        {context}
         """
  
     load_dotenv()
