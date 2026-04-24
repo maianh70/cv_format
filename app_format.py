@@ -21,12 +21,11 @@ def main():
     name = st.text_input("Enter expert's name:")
     title = st.text_input("Enter expert title:")
     nationality = st.text_input("Enter expert's nationality:")
-    dob = st.date_input(
-        "Enter expert's day of birth", 
-        value=None, 
-        min_value=min_date, 
-        max_value=max_date,
-        placeholder="Leave blank if unknown"
+    dob_input = st.date_input(
+        "Enter expert's day of birth (optional — leave blank if unknown)",
+        value=None,
+        min_value=date(1928, 1, 1),
+        max_value=date(2028, 1, 1),
     )
     dob = str(dob_input) if dob_input is not None else ""
 
