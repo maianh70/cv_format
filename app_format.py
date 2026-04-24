@@ -162,7 +162,7 @@ def detail_infor_extraction(name, title, nationality, dob,
  
         5. COUNTRIES OF WORK EXPERIENCE
         - List every unique country where the expert has worked, studied, or been based.
-        - Return as country names separated by commas ONLY, e.g. "Indonesia, Taiwan"
+        - Return as country names separated by commas ONLY, e.g. "Country_1, Country_2"
         - No extra words, no labels, just the country names.
  
         6. WORK UNDERTAKEN (EXPERIENCE)
