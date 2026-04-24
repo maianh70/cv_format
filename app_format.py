@@ -169,8 +169,7 @@ def detail_infor_extraction(name, title, nationality, dob,
         - Copy the assignment descriptions AS-IS from the CV text — exact wording, exact details.
         - ONLY apply adjustments explicitly requested in the context below. If the context says
           to highlight something, add or reorder content for that point only. Do not rephrase
-          anything that is not mentioned in the context.
-        - Try to separate each experience by paragraphing it.  
+          anything that is not mentioned in the context. 
         - The user's context is: {context}
  
         =====================
