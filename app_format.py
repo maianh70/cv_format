@@ -36,18 +36,18 @@ def main():
 
     # ==== Template Input ====
     template_file = st.file_uploader("Upload your Template (DOCX)", type=["docx"])
-
-    try:
-        template_bytes = template_file.read()
-        DocxTemplate(io.BytesIO(template_bytes))  # dry-run: catches corrupt files & bad Jinja2 tags
-    except Exception as e:
-        st.error(
-            "⚠️ Could not read the template. "
-            "Make sure all `{{ }}` and `{% %}` tags are typed directly in Word "
-            "(not copy-pasted) and are not split across formatting runs. "
-            f"Detail: {e}"
-        )
-        return
+    template_bytes = template_file.read()
+    if template_bytes is not None:
+        try:
+            DocxTemplate(io.BytesIO(template_bytes))  # dry-run: catches corrupt files & bad Jinja2 tags
+        except Exception as e:
+            st.error(
+                "⚠️ Could not read the template. "
+                "Make sure all `{{ }}` and `{% %}` tags are typed directly in Word "
+                "(not copy-pasted) and are not split across formatting runs. "
+                f"Detail: {e}"
+            )
+            return
     # ===== JSON for automation formatting =====
     cv_data_p1 = {
         "name": name,
