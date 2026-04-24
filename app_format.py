@@ -92,9 +92,6 @@ def main():
 
     if st.session_state.get("stage") == "detail_input":
         input_cv = st.file_uploader("Upload your CV (PDF)", type=["pdf"])
-        context = st.text_area("Additional Information (e.g: specific formatting requirements, key achievements to highlight, etc.):",
-                              placeholder="It's optional"
-                              )
         if input_cv:
             if st.button("🚀  Fill professional information"):
                 with st.spinner("Extracting information from CV..."):
@@ -102,7 +99,7 @@ def main():
                 with st.spinner("Asking AI to structure the data..."):
                     cv_data_p2 = detail_infor_extraction(
                         name, title, nationality, str(dob), 
-                        cv_text, context, 
+                        cv_text, 
                         int(languages_count), int(education_count), 
                         int(employment_count)
                     )
@@ -118,7 +115,7 @@ def main():
             
 
 def detail_infor_extraction(name, title, nationality, dob,
-                             cv_text, context,
+                             cv_text,
                              languages_count=0, education_count=0,
                              employment_count=0):
 
